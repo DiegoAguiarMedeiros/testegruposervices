@@ -1,0 +1,190 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card card-chart">
+            <div class="card-header ">
+                <div class="row">
+                    <div class="col-sm-6 text-left">
+                        <h5 class="card-category">Total por Estado</h5>
+                        <h2 class="card-title">Performance</h2>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="chartBig1"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    type = ['info', 'primary', 'success', 'warning', 'danger'];
+    $(document).ready(function () {
+        // Javascript method's body can be found in assets/js/demos.js
+
+        let settings = {
+            "url": "http://localhost:3000/api/auth",
+            "method": "GET",
+            "timeout": 0,
+            "dataType": "json",
+            "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "data": {
+                "user": "user",
+                "password": "1234"
+            }
+        };
+
+        $.ajax(settings).done(function (response) {
+            console.log(response);
+
+            var settings = {
+                "url": "http://localhost:3000/api/totalEstados",
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "authorization": response.token
+                },
+            };
+
+            $.ajax(settings).done(function (response) {
+                var max = Number.NEGATIVE_INFINITY
+                var min = Number.POSITIVE_INFINITY
+                var label = new Array()
+                var dados = new Array()
+                response.map(dado => {
+
+                    if (dado.total > max) {
+                        max = dado.total
+                    } else if (dado.total < min) {
+                        min = dado.total
+                    }
+
+                    label.push(dado.uf)
+                    dados.push(dado.total)
+                })
+
+
+                max = max + 100
+                min = min - 100
+
+
+                demo = {
+                    initPickColor: function () {
+                        $('.pick-class-label').click(function () {
+                            var new_class = $(this).attr('new-class');
+                            var old_class = $('#display-buttons').attr('data-class');
+                            var display_div = $('#display-buttons');
+                            if (display_div.length) {
+                                var display_buttons = display_div.find('.btn');
+                                display_buttons.removeClass(old_class);
+                                display_buttons.addClass(new_class);
+                                display_div.attr('data-class', new_class);
+                            }
+                        });
+                    },
+
+                    initDashboardPageCharts: function () {
+
+
+
+                        gradientBarChartConfiguration = {
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: false
+                            },
+
+                            tooltips: {
+                                backgroundColor: '#f5f5f5',
+                                titleFontColor: '#333',
+                                bodyFontColor: '#666',
+                                bodySpacing: 4,
+                                xPadding: 12,
+                                mode: "nearest",
+                                intersect: 0,
+                                position: "nearest"
+                            },
+                            responsive: true,
+                            scales: {
+                                yAxes: [{
+
+                                    gridLines: {
+                                        drawBorder: false,
+                                        color: 'rgba(29,140,248,0.1)',
+                                        zeroLineColor: "transparent",
+                                    },
+                                    ticks: {
+                                        suggestedMin: min,
+                                        suggestedMax: max,
+                                        padding: 20,
+                                        fontColor: "#9e9e9e"
+                                    }
+                                }],
+
+                                xAxes: [{
+
+                                    gridLines: {
+                                        drawBorder: false,
+                                        color: 'rgba(29,140,248,0.1)',
+                                        zeroLineColor: "transparent",
+                                    },
+                                    ticks: {
+                                        padding: 20,
+                                        fontColor: "#9e9e9e"
+                                    }
+                                }]
+                            }
+                        };
+                        var ctx = document.getElementById("chartBig1").getContext('2d');
+                        var gradientStroke = ctx.createLinearGradient(0, 230, 0, 50);
+                        gradientStroke.addColorStop(1, 'rgba(72,72,176,0.1)');
+                        gradientStroke.addColorStop(0.4, 'rgba(72,72,176,0.0)');
+                        gradientStroke.addColorStop(0, 'rgba(119,52,169,0)'); //purple colors
+                        var config = {
+                            type: 'bar',
+                            data: {
+                                labels: label,
+                                datasets: [{
+                                    label: "Total",
+                                    fill: true,
+                                    backgroundColor: gradientStroke,
+                                    borderColor: '#d346b1',
+                                    borderWidth: 2,
+                                    borderDash: [],
+                                    borderDashOffset: 0.0,
+                                    pointBackgroundColor: '#d346b1',
+                                    pointBorderColor: 'rgba(255,255,255,0)',
+                                    pointHoverBackgroundColor: '#d346b1',
+                                    pointBorderWidth: 20,
+                                    pointHoverRadius: 4,
+                                    pointHoverBorderWidth: 15,
+                                    pointRadius: 4,
+                                    data: dados,
+                                }]
+                            },
+                            options: gradientBarChartConfiguration
+                        };
+                        var myChartData = new Chart(ctx, config);
+
+
+
+
+
+                    },
+
+
+
+                };
+
+                demo.initDashboardPageCharts();
+
+            });
+        });
+
+    });
+
+
+</script>
